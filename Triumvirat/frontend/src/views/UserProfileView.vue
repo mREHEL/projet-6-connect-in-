@@ -5,6 +5,7 @@ import { authState } from "../utils/authEvents.js";
 import PostByUser from "../components/PostByUser.vue";
 import precedentIcon from "../assets/precedent.png";
 import defaultCover from "../assets/cover.png";
+import { userService } from "../services/userService.js";
 
 const route = useRoute();
 const router = useRouter();
@@ -14,8 +15,6 @@ const loading = ref(true);
 const errorMessage = ref("");
 
 const apiUrl = "http://localhost:8000";
-const token = localStorage.getItem("token");
-
 const userId = computed(() => {
 	const value = Number(route.params.id);
 	return Number.isFinite(value) ? value : null;
@@ -56,16 +55,7 @@ const fetchUser = async () => {
 	try {
 		loading.value = true;
 		errorMessage.value = "";
-		const response = await fetch(`${apiUrl}/api/users/${userId.value}`, {
-			headers: {
-				Authorization: `Bearer ${token}`,
-				Accept: "application/json",
-			},
-		});
-
-		if (!response.ok) throw new Error("Utilisateur introuvable.");
-
-		user.value = await response.json();
+		user.value = await userService.getById(userId.value);
 	} catch (err) {
 		console.error("Erreur lors de la récupération de l'utilisateur:", err);
 		errorMessage.value = err.message || "Impossible de charger l'utilisateur.";

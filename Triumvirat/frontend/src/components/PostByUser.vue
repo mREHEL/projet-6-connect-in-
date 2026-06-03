@@ -125,6 +125,7 @@
 <script setup>
 import { ref, computed, watch } from "vue";
 import { postService } from "../services/postService.js";
+import { userService } from "../services/userService.js";
 import { authState } from "../utils/authEvents.js";
 import { formatDate } from "../utils/dateFormatter.js";
 import { ThumbsUp } from "lucide-vue-next";
@@ -145,20 +146,10 @@ const isLiking = ref({});
 const currentUser = computed(() => authState.value.user);
 
 const apiUrl = "http://localhost:8000";
-const token = localStorage.getItem("token");
 
 const fetchUser = async () => {
 	try {
-		const response = await fetch(`${apiUrl}/api/users/${props.userId}`, {
-			headers: {
-				Authorization: `Bearer ${token}`,
-				Accept: "application/json",
-			},
-		});
-
-		if (!response.ok) throw new Error("Utilisateur introuvable");
-
-		user.value = await response.json();
+		user.value = await userService.getById(props.userId);
 	} catch (err) {
 		console.error("Erreur lors de la récupération de l'utilisateur:", err);
 		error.value = err.message;
@@ -167,16 +158,7 @@ const fetchUser = async () => {
 
 const fetchUserPosts = async () => {
 	try {
-		const response = await fetch(`${apiUrl}/api/users/${props.userId}/posts`, {
-			headers: {
-				Authorization: `Bearer ${token}`,
-				Accept: "application/json",
-			},
-		});
-
-		if (!response.ok) throw new Error("Impossible de charger les posts");
-
-		posts.value = await response.json();
+		posts.value = await userService.getPostsByUser(props.userId);
 	} catch (err) {
 		console.error("Erreur lors de la récupération des posts:", err);
 		error.value = err.message;

@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHashHistory, createWebHistory } from "vue-router";
 import PostView from "../views/PostView.vue";
 import RegisterView from "../views/RegisterView.vue";
 import ConnectionView from "../views/ConnectionView.vue";
@@ -8,6 +8,7 @@ import UserProfileView from "../views/UserProfileView.vue";
 import { emitter } from "../utils/emitter.js";
 import SettingsView from "../views/SettingsView.vue";
 import EditProfile from "../components/EditProfile.vue";
+import { demoStore, isDemoMode } from "../services/demoStore.js";
 
 const routes = [
 	{
@@ -60,12 +61,16 @@ const routes = [
 ];
 
 const router = createRouter({
-	history: createWebHistory(),
+	history: isDemoMode ? createWebHashHistory(import.meta.env.BASE_URL) : createWebHistory(import.meta.env.BASE_URL),
 	routes,
 });
 
 // Navigation Guard
 router.beforeEach((to, from, next) => {
+	if (isDemoMode && !localStorage.getItem("token")) {
+		demoStore.startSession();
+	}
+
 	const isAuthenticated = !!localStorage.getItem("token");
 
 	//  L'utilisateur pas connecté et veut aller sur une page privée

@@ -5,8 +5,15 @@ import { onMounted } from "vue";
 import { authService } from "./services/authService";
 import Toast from "./components/Toast.vue";
 import cover from "./assets/pillar.jpg";
+import { updateAuthState } from "./utils/authEvents.js";
+import { isDemoMode } from "./services/demoStore.js";
 
 onMounted(async () => {
+    if (isDemoMode && !localStorage.getItem("token")) {
+        authService.startDemoSession();
+        return;
+    }
+
     const token = localStorage.getItem("token");
     if (token) {
         try {

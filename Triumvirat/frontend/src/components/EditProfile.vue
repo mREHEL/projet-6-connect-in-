@@ -83,28 +83,14 @@ async function handlePasswordChange() {
 			payload.password_confirmation = form.value.password_confirmation;
 		}
 
-		const response = await fetch(`http://localhost:8000/api/users/${currentUser.value.id}`, {
-			method: "PUT",
-			headers: {
-				"Content-Type": "application/json",
-				Accept: "application/json",
-				Authorization: `Bearer ${localStorage.getItem("token")}`,
-			},
-			body: JSON.stringify(payload),
-		});
-
-		const data = await response.json();
-
-		if (!response.ok) {
-			if (response.status === 422) errors.value = data.errors;
-			else throw new Error(data.message || "Erreur lors de la mise à jour");
-		} else {
-			localStorage.setItem("user", JSON.stringify(data.user));
-			updateAuthState();
-			alert("Profil mis à jour avec succès !");
-			router.push("/settings");
-		}
+		await authService.updateAccount(currentUser.value.id, payload);
+		alert("Profil mis à jour avec succès !");
+		router.push("/settings");
 	} catch (error) {
+		if (error.status === 422 && error.errors) {
+			errors.value = error.errors;
+			return;
+		}
 		alert(error.message || "Une erreur est survenue.");
 	} finally {
 		loading.value = false;

@@ -1,10 +1,18 @@
 import { updateAuthState } from "../utils/authEvents.js";
 import router from '../router';
+import { demoStore, isDemoMode } from "./demoStore.js";
 
 const API_URL = "http://localhost:8000/api";
 
 export const authService = {
+    startDemoSession() {
+        if (!isDemoMode) return null;
+        return demoStore.startSession();
+    },
+
     async login(credentials) {
+        if (isDemoMode) return demoStore.login(credentials);
+
         const response = await fetch(`${API_URL}/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
@@ -25,6 +33,8 @@ export const authService = {
     },
 
     async register(userData) {
+        if (isDemoMode) return demoStore.register(userData);
+
         const response = await fetch(`${API_URL}/register`, {
             method: "POST",
             headers: {
@@ -54,6 +64,12 @@ export const authService = {
         return data;
     },
     async logout() {
+        if (isDemoMode) {
+            demoStore.logout();
+            router.push('/connexion');
+            return;
+        }
+
         const token = localStorage.getItem('token');
         try {
             if (token) {
@@ -76,6 +92,8 @@ export const authService = {
     },
 
     async getProfile() {
+        if (isDemoMode) return demoStore.getProfile();
+
         const token = localStorage.getItem("token");
         if (!token) return null;
 
@@ -104,6 +122,11 @@ export const authService = {
     },
 
     async updateProfile(userId, { bio, profilePhotoFile, coverImageFile, deleteCover, deleteProfilePhoto, onProgress }) {
+        if (isDemoMode) {
+            if (typeof onProgress === "function") onProgress(100);
+            return demoStore.updateProfile(userId, { bio, profilePhotoFile, coverImageFile, deleteCover, deleteProfilePhoto });
+        }
+
         const token = localStorage.getItem("token");
         if (!token) throw new Error("Non authentifié");
 
@@ -168,8 +191,40 @@ export const authService = {
         });
     },
 
+    async updateAccount(userId, payload) {
+        if (isDemoMode) return demoStore.updateAccount(userId, payload);
+
+        const response = await fetch(`${API_URL}/users/${userId}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify(payload),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            const error = new Error(data.message || "Erreur lors de la mise à jour");
+            error.status = response.status;
+            error.errors = data.errors;
+            throw error;
+        }
+
+        if (data.user) {
+            localStorage.setItem("user", JSON.stringify(data.user));
+            updateAuthState();
+        }
+
+        return data;
+    },
+
     // FONCTION DE SUPPRESSION
     async deleteAccount(isHardDelete = false) {
+        if (isDemoMode) return demoStore.deleteAccount(isHardDelete);
+
         const token = localStorage.getItem("token");
         if (!token) throw new Error("Non authentifié");
 

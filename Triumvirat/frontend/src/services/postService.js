@@ -1,6 +1,7 @@
 import router from "../router";
 import { emitter } from "../utils/emitter.js";
 import { updateAuthState } from "../utils/authEvents.js";
+import { demoStore, isDemoMode } from "./demoStore.js";
 
 const API_URL = "http://localhost:8000/api";
 
@@ -65,6 +66,8 @@ export async function handleResponse(response) {
 
 export const postService = {
 	async getAll() {
+		if (isDemoMode) return demoStore.getAllPosts();
+
 		const response = await fetch(`${API_URL}/posts`, {
 			method: "GET",
 			headers: getHeaders(),
@@ -73,6 +76,8 @@ export const postService = {
 	},
 
 	async getById(id) {
+		if (isDemoMode) return demoStore.getPostById(id);
+
 		const response = await fetch(`${API_URL}/posts/${id}`, {
 			method: "GET",
 			headers: getHeaders(),
@@ -81,6 +86,8 @@ export const postService = {
 	},
 
 	async create(data) {
+		if (isDemoMode) return demoStore.createPost(data);
+
 		const token = localStorage.getItem("token");
 
 		if (!token) {
@@ -111,6 +118,8 @@ export const postService = {
 	},
 
 	async delete(id) {
+		if (isDemoMode) return demoStore.deletePost(id);
+
 		const response = await fetch(`${API_URL}/posts/${id}`, {
 			method: "DELETE",
 			headers: getHeaders(),
@@ -119,6 +128,8 @@ export const postService = {
 	},
 
 	async toggleLike(postId) {
+		if (isDemoMode) return demoStore.toggleLike(postId);
+
 		const response = await fetch(`${API_URL}/posts/${postId}/like`, {
 			method: "POST",
 			headers: getHeaders(),
@@ -126,6 +137,8 @@ export const postService = {
 		return handleResponse(response);
 	},
 	async addComment(postId, content) {
+		if (isDemoMode) return demoStore.addComment(postId, content);
+
 		const response = await fetch(`${API_URL}/posts/${postId}/comments`, {
 			method: "POST",
 			headers: getHeaders(),
@@ -136,6 +149,8 @@ export const postService = {
 	//
 	// FONCTIONS COMMENTAIRES ---
 	async updateComment(commentId, content) {
+		if (isDemoMode) return demoStore.updateComment(commentId, content);
+
 		const response = await fetch(`${API_URL}/comments/${commentId}`, {
 			method: "PUT",
 			headers: getHeaders(),
@@ -145,6 +160,8 @@ export const postService = {
 	},
 
 	async deleteComment(commentId) {
+		if (isDemoMode) return demoStore.deleteComment(commentId);
+
 		const response = await fetch(`${API_URL}/comments/${commentId}`, {
 			method: "DELETE",
 			headers: getHeaders(),
@@ -152,6 +169,8 @@ export const postService = {
 		return handleResponse(response);
 	},
 	async update(id, content) {
+		if (isDemoMode) return demoStore.updatePost(id, content);
+
 		const response = await fetch(`${API_URL}/posts/${id}`, {
 			method: "PUT",
 			headers: getHeaders(),
